@@ -310,7 +310,7 @@ namespace Klarna.Checkout.Euro.Managers
                         { "terms_uri", string.Format("{0}/{1}", context.Store.Url, TermsUrl) },
                         { "checkout_uri", string.Format("{0}/{1}", context.Store.Url, CheckoutUrl) },
                         { "confirmation_uri", string.Format("{0}/{1}?sid=123&orderId={2}&", context.Store.Url, ConfirmationUrl, context.Order.Id) + "klarna_order_id={checkout.order.id}" },
-                        { "push_uri", string.Format("{0}/{1}?sid=123&orderId={2}&", context.Store.Url, "admin/api/paymentcallback", context.Order.Id) + "klarna_order_id={checkout.order.id}" },
+                        { "push_uri", string.Format("{0}/{1}?sid=123&orderId={2}&", context.Store.Url.Replace("www","admin"), "api/paymentcallback", context.Order.Id) + "klarna_order_id={checkout.order.id}" },
                         { "back_to_store_uri", context.Store.Url }
                     };
 
