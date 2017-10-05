@@ -323,10 +323,10 @@ namespace Klarna.Checkout.Euro.Managers
             var merchant = new Dictionary<string, object>
                     {
                         { "id", AppKey },
-                        { "terms_uri", string.Format("{0}/{1}", context.Store.Url, TermsUrl) },
-                        { "checkout_uri", string.Format("{0}/{1}", context.Store.Url, CheckoutUrl) },
-                        { "confirmation_uri", string.Format("{0}/{1}?sid=123&orderId={2}&", context.Store.Url, ConfirmationUrl, context.Order.Id) + "klarna_order_id={checkout.order.id}" },
-                        { "push_uri", string.Format("{0}/{1}?sid=123&orderId={2}&", PushUrl, "api/paymentcallback", context.Order.Id) + "klarna_order_id={checkout.order.id}" },
+                        { "terms_uri", $"{context.Store.Url}/{TermsUrl}"},
+                        { "checkout_uri", $"{context.Store.Url}/{CheckoutUrl}"},
+                        { "confirmation_uri", $"{context.Store.Url}/{ConfirmationUrl}?sid=123&orderId={context.Order.Id}&klarna_order_id={{checkout.order.id}}" },
+                        { "push_uri", $"{PushUrl}/api/paymentcallback?sid=123&orderId={context.Order.Id}&klarna_order_id={{checkout.order.id}}" },
                         { "back_to_store_uri", context.Store.Url }
                     };
 
@@ -371,6 +371,9 @@ namespace Klarna.Checkout.Euro.Managers
             order.Fetch();
             var status = order.GetValue("status") as string;
 
+            var gui = order.GetValue("gui") as JObject;
+            var html = gui["snippet"].Value<string>();
+
             if (status == "checkout_complete")
             {
                 var data = new Dictionary<string, object> { { "status", "created" } };
@@ -400,6 +403,8 @@ namespace Klarna.Checkout.Euro.Managers
             {
                 retVal.ErrorMessage = "order not created";
             }
+
+            retVal.ReturnUrl = html;
 
             retVal.OrderId = context.Order.Id;
             return retVal;
