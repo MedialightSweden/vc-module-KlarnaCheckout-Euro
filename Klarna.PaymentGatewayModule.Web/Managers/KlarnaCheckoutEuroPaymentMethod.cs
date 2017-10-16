@@ -365,136 +365,6 @@ namespace Klarna.Checkout.Euro.Managers
             return retVal;
         }
 
-        private Dictionary<string, string> countryCodesMapping = new Dictionary<string, string>()
-        {
-            {"AFG", "AF"}, // Afghanistan
-            {"ALB", "AL"}, // Albania
-            {"ARE", "AE"}, // U.A.E.
-            {"ARG", "AR"}, // Argentina
-            {"ARM", "AM"}, // Armenia
-            {"AUS", "AU"}, // Australia
-            {"AUT", "AT"}, // Austria
-            {"AZE", "AZ"}, // Azerbaijan
-            {"BEL", "BE"}, // Belgium
-            {"BGD", "BD"}, // Bangladesh
-            {"BGR", "BG"}, // Bulgaria
-            {"BHR", "BH"}, // Bahrain
-            {"BIH", "BA"}, // Bosnia and Herzegovina
-            {"BLR", "BY"}, // Belarus
-            {"BLZ", "BZ"}, // Belize
-            {"BOL", "BO"}, // Bolivia
-            {"BRA", "BR"}, // Brazil
-            {"BRN", "BN"}, // Brunei Darussalam
-            {"CAN", "CA"}, // Canada
-            {"CHE", "CH"}, // Switzerland
-            {"CHL", "CL"}, // Chile
-            {"CHN", "CN"}, // People's Republic of China
-            {"COL", "CO"}, // Colombia
-            {"CRI", "CR"}, // Costa Rica
-            {"CZE", "CZ"}, // Czech Republic
-            {"DEU", "DE"}, // Germany
-            {"DNK", "DK"}, // Denmark
-            {"DOM", "DO"}, // Dominican Republic
-            {"DZA", "DZ"}, // Algeria
-            {"ECU", "EC"}, // Ecuador
-            {"EGY", "EG"}, // Egypt
-            {"ESP", "ES"}, // Spain
-            {"EST", "EE"}, // Estonia
-            {"ETH", "ET"}, // Ethiopia
-            {"FIN", "FI"}, // Finland
-            {"FRA", "FR"}, // France
-            {"FRO", "FO"}, // Faroe Islands
-            {"GBR", "GB"}, // United Kingdom
-            {"GEO", "GE"}, // Georgia
-            {"GRC", "GR"}, // Greece
-            {"GRL", "GL"}, // Greenland
-            {"GTM", "GT"}, // Guatemala
-            {"HKG", "HK"}, // Hong Kong S.A.R.
-            {"HND", "HN"}, // Honduras
-            {"HRV", "HR"}, // Croatia
-            {"HUN", "HU"}, // Hungary
-            {"IDN", "ID"}, // Indonesia
-            {"IND", "IN"}, // India
-            {"IRL", "IE"}, // Ireland
-            {"IRN", "IR"}, // Iran
-            {"IRQ", "IQ"}, // Iraq
-            {"ISL", "IS"}, // Iceland
-            {"ISR", "IL"}, // Israel
-            {"ITA", "IT"}, // Italy
-            {"JAM", "JM"}, // Jamaica
-            {"JOR", "JO"}, // Jordan
-            {"JPN", "JP"}, // Japan
-            {"KAZ", "KZ"}, // Kazakhstan
-            {"KEN", "KE"}, // Kenya
-            {"KGZ", "KG"}, // Kyrgyzstan
-            {"KHM", "KH"}, // Cambodia
-            {"KOR", "KR"}, // Korea
-            {"KWT", "KW"}, // Kuwait
-            {"LAO", "LA"}, // Lao P.D.R.
-            {"LBN", "LB"}, // Lebanon
-            {"LBY", "LY"}, // Libya
-            {"LIE", "LI"}, // Liechtenstein
-            {"LKA", "LK"}, // Sri Lanka
-            {"LTU", "LT"}, // Lithuania
-            {"LUX", "LU"}, // Luxembourg
-            {"LVA", "LV"}, // Latvia
-            {"MAC", "MO"}, // Macao S.A.R.
-            {"MAR", "MA"}, // Morocco
-            {"MCO", "MC"}, // Principality of Monaco
-            {"MDV", "MV"}, // Maldives
-            {"MEX", "MX"}, // Mexico
-            {"MKD", "MK"}, // Macedonia (FYROM)
-            {"MLT", "MT"}, // Malta
-            {"MNE", "ME"}, // Montenegro
-            {"MNG", "MN"}, // Mongolia
-            {"MYS", "MY"}, // Malaysia
-            {"NGA", "NG"}, // Nigeria
-            {"NIC", "NI"}, // Nicaragua
-            {"NLD", "NL"}, // Netherlands
-            {"NOR", "NO"}, // Norway
-            {"NPL", "NP"}, // Nepal
-            {"NZL", "NZ"}, // New Zealand
-            {"OMN", "OM"}, // Oman
-            {"PAK", "PK"}, // Islamic Republic of Pakistan
-            {"PAN", "PA"}, // Panama
-            {"PER", "PE"}, // Peru
-            {"PHL", "PH"}, // Republic of the Philippines
-            {"POL", "PL"}, // Poland
-            {"PRI", "PR"}, // Puerto Rico
-            {"PRT", "PT"}, // Portugal
-            {"PRY", "PY"}, // Paraguay
-            {"QAT", "QA"}, // Qatar
-            {"ROU", "RO"}, // Romania
-            {"RUS", "RU"}, // Russia
-            {"RWA", "RW"}, // Rwanda
-            {"SAU", "SA"}, // Saudi Arabia
-            {"SCG", "CS"}, // Serbia and Montenegro (Former)
-            {"SEN", "SN"}, // Senegal
-            {"SGP", "SG"}, // Singapore
-            {"SLV", "SV"}, // El Salvador
-            {"SRB", "RS"}, // Serbia
-            {"SVK", "SK"}, // Slovakia
-            {"SVN", "SI"}, // Slovenia
-            {"SWE", "SE"}, // Sweden
-            {"SYR", "SY"}, // Syria
-            {"TAJ", "TJ"}, // Tajikistan
-            {"THA", "TH"}, // Thailand
-            {"TKM", "TM"}, // Turkmenistan
-            {"TTO", "TT"}, // Trinidad and Tobago
-            {"TUN", "TN"}, // Tunisia
-            {"TUR", "TR"}, // Turkey
-            {"TWN", "TW"}, // Taiwan
-            {"UKR", "UA"}, // Ukraine
-            {"URY", "UY"}, // Uruguay
-            {"USA", "US"}, // United States
-            {"UZB", "UZ"}, // Uzbekistan
-            {"VEN", "VE"}, // Bolivarian Republic of Venezuela
-            {"VNM", "VN"}, // Vietnam
-            {"YEM", "YE"}, // Yemen
-            {"ZAF", "ZA"}, // South Africa
-            {"ZWE", "ZW"} // Zimbabwe
-        };
-
         private PostProcessPaymentResult PostProcessKlarnaOrder(PostProcessPaymentEvaluationContext context)
         {
             PostProcessPaymentResult retVal = new PostProcessPaymentResult();
@@ -516,64 +386,11 @@ namespace Klarna.Checkout.Euro.Managers
                 order.Update(data);
                 //order.Fetch();
                 status = order.GetValue("status") as string;
-
-                object value = order.GetValue("shipping_address");
-
-                JObject shippingAddress = JObject.FromObject(value);
-
-                if (context.Order.Addresses == null || context.Order.Addresses.Count < 1)
-                {
-                    if (context.Order.Addresses == null)
-                    {
-                        context.Order.Addresses = new List<Address>();
-                    }
-
-                    context.Order.Addresses.Add(new Address { AddressType = AddressType.Shipping });
-                }
-
-                Address address = context.Order.Addresses.First(add => add.AddressType == AddressType.Shipping);
-
-                address.FirstName = shippingAddress["given_name"]?.Value<string>();
-
-                address.LastName = shippingAddress["family_name"]?.Value<string>();
-
-                address.Name = shippingAddress["care_of"]?.Value<string>();
-
-                address.Line1 = shippingAddress["street_address"]?.Value<string>() ??
-                                (shippingAddress["street_name"] != null && shippingAddress["street_number"] != null ? $@"{shippingAddress["street_name"]?.Value<string>()} {shippingAddress["street_number"]?.Value<string>()}" : null) ??
-                                shippingAddress["street_name"]?.Value<string>() ?? shippingAddress["street_number"]?.Value<string>();
-
-                address.Organization = shippingAddress["organization_name"]?.Value<string>();
-
-                address.Zip = shippingAddress["postal_code"]?.Value<string>();
-
-                address.City = shippingAddress["city"]?.Value<string>();
-
-                address.CountryCode = shippingAddress["country"]?.Value<string>();
-
-                if (address.CountryCode != null)
-                {
-                    RegionInfo regionInfo = new RegionInfo(address.CountryCode);
-
-                    address.CountryCode = regionInfo.TwoLetterISORegionName;
-
-                    address.CountryName = regionInfo.EnglishName;
-                }
-
-                address.Email = shippingAddress["email"]?.Value<string>();
-
-                address.Phone = shippingAddress["phone"]?.Value<string>();
-
-                address.RegionName = "N/A";
-
-                address.RegionId = "N/A";
             }
 
             if (status == "created" && IsSale())
             {
                 CaptureProcessPaymentResult result = CaptureProcessPayment(new CaptureProcessPaymentEvaluationContext { Payment = context.Payment });
-
-                context.Order.Status = "Paid";
 
                 retVal.NewPaymentStatus = context.Payment.PaymentStatus = PaymentStatus.Paid;
                 context.Payment.OuterId = result.OuterId;
@@ -581,15 +398,20 @@ namespace Klarna.Checkout.Euro.Managers
                 context.Payment.CapturedDate = DateTime.UtcNow;
                 retVal.IsSuccess = true;
 
+                context.Order.Status = "Paid";
+
+                UpdateShippingAddress(context, order);
             }
             else if (status == "created")
             {
-                context.Order.Status = "Authorized";
-
                 retVal.NewPaymentStatus = context.Payment.PaymentStatus = PaymentStatus.Authorized;
                 context.Payment.OuterId = retVal.OuterId = context.OuterId;
                 context.Payment.AuthorizedDate = DateTime.UtcNow;
                 retVal.IsSuccess = true;
+
+                context.Order.Status = "Authorized";
+
+                UpdateShippingAddress(context, order);
             }
             else
             {
@@ -600,6 +422,60 @@ namespace Klarna.Checkout.Euro.Managers
 
             retVal.OrderId = context.Order.Id;
             return retVal;
+        }
+
+        private static void UpdateShippingAddress(PostProcessPaymentEvaluationContext context, Order order)
+        {
+            object value = order.GetValue("shipping_address");
+
+            JObject shippingAddress = JObject.FromObject(value);
+
+            if (context.Order.Addresses == null || context.Order.Addresses.Count < 1)
+            {
+                if (context.Order.Addresses == null)
+                {
+                    context.Order.Addresses = new List<Address>();
+                }
+
+                context.Order.Addresses.Add(new Address {AddressType = AddressType.Shipping});
+            }
+
+            Address address = context.Order.Addresses.First(add => add.AddressType == AddressType.Shipping);
+
+            address.FirstName = shippingAddress["given_name"]?.Value<string>();
+
+            address.LastName = shippingAddress["family_name"]?.Value<string>();
+
+            address.Name = shippingAddress["care_of"]?.Value<string>();
+
+            address.Line1 = shippingAddress["street_address"]?.Value<string>() ??
+                            (shippingAddress["street_name"] != null && shippingAddress["street_number"] != null ? $@"{shippingAddress["street_name"]?.Value<string>()} {shippingAddress["street_number"]?.Value<string>()}" : null) ??
+                            shippingAddress["street_name"]?.Value<string>() ?? shippingAddress["street_number"]?.Value<string>();
+
+            address.Organization = shippingAddress["organization_name"]?.Value<string>();
+
+            address.Zip = shippingAddress["postal_code"]?.Value<string>();
+
+            address.City = shippingAddress["city"]?.Value<string>();
+
+            address.CountryCode = shippingAddress["country"]?.Value<string>();
+
+            if (address.CountryCode != null)
+            {
+                RegionInfo regionInfo = new RegionInfo(address.CountryCode);
+
+                address.CountryCode = regionInfo.ThreeLetterISORegionName;
+
+                address.CountryName = regionInfo.EnglishName;
+            }
+
+            address.Email = shippingAddress["email"]?.Value<string>();
+
+            address.Phone = shippingAddress["phone"]?.Value<string>();
+
+            address.RegionName = "Not Applicable";
+
+            address.RegionId = "Not Applicable";
         }
 
         private List<Dictionary<string, object>> CreateKlarnaCartItems(CustomerOrder order)
