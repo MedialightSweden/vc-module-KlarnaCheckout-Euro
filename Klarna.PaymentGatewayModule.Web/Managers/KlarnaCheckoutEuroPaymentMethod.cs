@@ -6,10 +6,15 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Web;
+using VirtoCommerce.Domain.Commerce.Model;
 using VirtoCommerce.Domain.Order.Model;
 using VirtoCommerce.Domain.Payment.Model;
+using Address = VirtoCommerce.Domain.Commerce.Model.Address;
+using Currency = Klarna.Api.Currency;
 
 namespace Klarna.Checkout.Euro.Managers
 {
@@ -141,7 +146,7 @@ namespace Klarna.Checkout.Euro.Managers
 
         public override ProcessPaymentResult ProcessPayment(ProcessPaymentEvaluationContext context)
         {
-            var retVal = new ProcessPaymentResult();
+            ProcessPaymentResult retVal = new ProcessPaymentResult();
 
             if (context.Order != null && context.Store != null && context.Payment != null)
             {
@@ -163,16 +168,16 @@ namespace Klarna.Checkout.Euro.Managers
             if (context.Payment == null)
                 throw new ArgumentNullException("context.Payment");
 
-            var retVal = new CaptureProcessPaymentResult();
+            CaptureProcessPaymentResult retVal = new CaptureProcessPaymentResult();
 
             if (ApiConnector == null)
                 ApiConnector = Connector.Create(AppSecret, CheckoutBaseUri);
 
-            var connector = ApiConnector;
-            var order = new Order(connector, context.Payment.OuterId);
+            IConnector connector = ApiConnector;
+            Order order = new Order(connector, context.Payment.OuterId);
             order.Fetch();
 
-            var reservation = order.GetValue("reservation") as string;
+            string reservation = order.GetValue("reservation") as string;
             if (!string.IsNullOrEmpty(reservation))
             {
                 try
@@ -180,7 +185,7 @@ namespace Klarna.Checkout.Euro.Managers
                     if (KlarnaApi == null)
                         InitializeKlarnaApi();
 
-                    var response = KlarnaApi.Activate(reservation);
+                    ActivateReservationResponse response = KlarnaApi.Activate(reservation);
 
                     retVal.NewPaymentStatus = context.Payment.PaymentStatus = PaymentStatus.Paid;
                     context.Payment.CapturedDate = DateTime.UtcNow;
@@ -208,18 +213,18 @@ namespace Klarna.Checkout.Euro.Managers
             if (context.Payment == null)
                 throw new ArgumentNullException("context.Payment");
 
-            var retVal = new VoidProcessPaymentResult();
+            VoidProcessPaymentResult retVal = new VoidProcessPaymentResult();
 
             if (!context.Payment.IsApproved && (context.Payment.PaymentStatus == PaymentStatus.Authorized || context.Payment.PaymentStatus == PaymentStatus.Cancelled))
             {
                 if (ApiConnector == null)
                     ApiConnector = Connector.Create(AppSecret, CheckoutBaseUri);
 
-                var connector = ApiConnector;
-                var order = new Order(connector, context.Payment.OuterId);
+                IConnector connector = ApiConnector;
+                Order order = new Order(connector, context.Payment.OuterId);
                 order.Fetch();
 
-                var reservation = order.GetValue("reservation") as string;
+                string reservation = order.GetValue("reservation") as string;
                 if (!string.IsNullOrEmpty(reservation))
                 {
                     try
@@ -227,7 +232,7 @@ namespace Klarna.Checkout.Euro.Managers
                         if (KlarnaApi == null)
                             InitializeKlarnaApi();
 
-                        var result = KlarnaApi.CancelReservation(reservation);
+                        bool result = KlarnaApi.CancelReservation(reservation);
                         if (result)
                         {
                             retVal.NewPaymentStatus = context.Payment.PaymentStatus = PaymentStatus.Voided;
@@ -267,14 +272,14 @@ namespace Klarna.Checkout.Euro.Managers
             if (context.Payment == null)
                 throw new ArgumentNullException("context.Payment");
 
-            var retVal = new RefundProcessPaymentResult();
+            RefundProcessPaymentResult retVal = new RefundProcessPaymentResult();
 
             if (context.Payment.IsApproved && (context.Payment.PaymentStatus == PaymentStatus.Paid || context.Payment.PaymentStatus == PaymentStatus.Cancelled))
             {
                 if (KlarnaApi == null)
                     InitializeKlarnaApi();
 
-                var result = KlarnaApi.CreditInvoice(context.Payment.OuterId);
+                string result = KlarnaApi.CreditInvoice(context.Payment.OuterId);
 
                 if (!string.IsNullOrEmpty(result))
                 {
@@ -290,10 +295,10 @@ namespace Klarna.Checkout.Euro.Managers
 
         public override ValidatePostProcessRequestResult ValidatePostProcessRequest(NameValueCollection queryString)
         {
-            var retVal = new ValidatePostProcessRequestResult();
+            ValidatePostProcessRequestResult retVal = new ValidatePostProcessRequestResult();
 
-            var klarnaOrderId = queryString["klarna_order_id"];
-            var sid = queryString["sid"];
+            string klarnaOrderId = queryString["klarna_order_id"];
+            string sid = queryString["sid"];
 
             if (!string.IsNullOrEmpty(klarnaOrderId) && !string.IsNullOrEmpty(sid))
             {
@@ -308,19 +313,19 @@ namespace Klarna.Checkout.Euro.Managers
 
         private ProcessPaymentResult ProcessKlarnaOrder(ProcessPaymentEvaluationContext context)
         {
-            var retVal = new ProcessPaymentResult();
+            ProcessPaymentResult retVal = new ProcessPaymentResult();
 
             if (ApiConnector == null)
                 ApiConnector = Connector.Create(AppSecret, CheckoutBaseUri);
 
-            var connector = ApiConnector;
-            var order = new Order(connector);
+            IConnector connector = ApiConnector;
+            Order order = new Order(connector);
 
             //Create cart
-            var cartItems = CreateKlarnaCartItems(context.Order);
-            var cart = new Dictionary<string, object> { { "items", cartItems } };
+            List<Dictionary<string, object>> cartItems = CreateKlarnaCartItems(context.Order);
+            Dictionary<string, object> cart = new Dictionary<string, object> { { "items", cartItems } };
 
-            var merchant = new Dictionary<string, object>
+            Dictionary<string, object> merchant = new Dictionary<string, object>
                     {
                         { "id", AppKey },
                         { "terms_uri", $"{context.Store.Url}/{TermsUrl}"},
@@ -330,12 +335,12 @@ namespace Klarna.Checkout.Euro.Managers
                         { "back_to_store_uri", context.Store.Url }
                     };
 
-            var layout = new Dictionary<string, object>
+            Dictionary<string, object> layout = new Dictionary<string, object>
                     {
                         { "layout", "desktop" }
                     };
 
-            var data = new Dictionary<string, object>
+            Dictionary<string, object> data = new Dictionary<string, object>
                     {
                         { "purchase_country", PurchaseCountyTwoLetterCode},
                         { "purchase_currency", PurchaseCurrency},
@@ -349,9 +354,10 @@ namespace Klarna.Checkout.Euro.Managers
             order.Fetch();
 
             //Gets snippet
-            var gui = order.GetValue("gui") as JObject;
-            var html = gui["snippet"].Value<string>();
+            JObject gui = order.GetValue("gui") as JObject;
+            string html = gui["snippet"].Value<string>();
 
+            context.Order.Status = "Pending";
             retVal.IsSuccess = true;
             retVal.NewPaymentStatus = context.Payment.PaymentStatus = PaymentStatus.Pending;
             retVal.HtmlForm = html;
@@ -359,41 +365,227 @@ namespace Klarna.Checkout.Euro.Managers
             return retVal;
         }
 
+        private Dictionary<string, string> countryCodesMapping = new Dictionary<string, string>()
+        {
+            {"AFG", "AF"}, // Afghanistan
+            {"ALB", "AL"}, // Albania
+            {"ARE", "AE"}, // U.A.E.
+            {"ARG", "AR"}, // Argentina
+            {"ARM", "AM"}, // Armenia
+            {"AUS", "AU"}, // Australia
+            {"AUT", "AT"}, // Austria
+            {"AZE", "AZ"}, // Azerbaijan
+            {"BEL", "BE"}, // Belgium
+            {"BGD", "BD"}, // Bangladesh
+            {"BGR", "BG"}, // Bulgaria
+            {"BHR", "BH"}, // Bahrain
+            {"BIH", "BA"}, // Bosnia and Herzegovina
+            {"BLR", "BY"}, // Belarus
+            {"BLZ", "BZ"}, // Belize
+            {"BOL", "BO"}, // Bolivia
+            {"BRA", "BR"}, // Brazil
+            {"BRN", "BN"}, // Brunei Darussalam
+            {"CAN", "CA"}, // Canada
+            {"CHE", "CH"}, // Switzerland
+            {"CHL", "CL"}, // Chile
+            {"CHN", "CN"}, // People's Republic of China
+            {"COL", "CO"}, // Colombia
+            {"CRI", "CR"}, // Costa Rica
+            {"CZE", "CZ"}, // Czech Republic
+            {"DEU", "DE"}, // Germany
+            {"DNK", "DK"}, // Denmark
+            {"DOM", "DO"}, // Dominican Republic
+            {"DZA", "DZ"}, // Algeria
+            {"ECU", "EC"}, // Ecuador
+            {"EGY", "EG"}, // Egypt
+            {"ESP", "ES"}, // Spain
+            {"EST", "EE"}, // Estonia
+            {"ETH", "ET"}, // Ethiopia
+            {"FIN", "FI"}, // Finland
+            {"FRA", "FR"}, // France
+            {"FRO", "FO"}, // Faroe Islands
+            {"GBR", "GB"}, // United Kingdom
+            {"GEO", "GE"}, // Georgia
+            {"GRC", "GR"}, // Greece
+            {"GRL", "GL"}, // Greenland
+            {"GTM", "GT"}, // Guatemala
+            {"HKG", "HK"}, // Hong Kong S.A.R.
+            {"HND", "HN"}, // Honduras
+            {"HRV", "HR"}, // Croatia
+            {"HUN", "HU"}, // Hungary
+            {"IDN", "ID"}, // Indonesia
+            {"IND", "IN"}, // India
+            {"IRL", "IE"}, // Ireland
+            {"IRN", "IR"}, // Iran
+            {"IRQ", "IQ"}, // Iraq
+            {"ISL", "IS"}, // Iceland
+            {"ISR", "IL"}, // Israel
+            {"ITA", "IT"}, // Italy
+            {"JAM", "JM"}, // Jamaica
+            {"JOR", "JO"}, // Jordan
+            {"JPN", "JP"}, // Japan
+            {"KAZ", "KZ"}, // Kazakhstan
+            {"KEN", "KE"}, // Kenya
+            {"KGZ", "KG"}, // Kyrgyzstan
+            {"KHM", "KH"}, // Cambodia
+            {"KOR", "KR"}, // Korea
+            {"KWT", "KW"}, // Kuwait
+            {"LAO", "LA"}, // Lao P.D.R.
+            {"LBN", "LB"}, // Lebanon
+            {"LBY", "LY"}, // Libya
+            {"LIE", "LI"}, // Liechtenstein
+            {"LKA", "LK"}, // Sri Lanka
+            {"LTU", "LT"}, // Lithuania
+            {"LUX", "LU"}, // Luxembourg
+            {"LVA", "LV"}, // Latvia
+            {"MAC", "MO"}, // Macao S.A.R.
+            {"MAR", "MA"}, // Morocco
+            {"MCO", "MC"}, // Principality of Monaco
+            {"MDV", "MV"}, // Maldives
+            {"MEX", "MX"}, // Mexico
+            {"MKD", "MK"}, // Macedonia (FYROM)
+            {"MLT", "MT"}, // Malta
+            {"MNE", "ME"}, // Montenegro
+            {"MNG", "MN"}, // Mongolia
+            {"MYS", "MY"}, // Malaysia
+            {"NGA", "NG"}, // Nigeria
+            {"NIC", "NI"}, // Nicaragua
+            {"NLD", "NL"}, // Netherlands
+            {"NOR", "NO"}, // Norway
+            {"NPL", "NP"}, // Nepal
+            {"NZL", "NZ"}, // New Zealand
+            {"OMN", "OM"}, // Oman
+            {"PAK", "PK"}, // Islamic Republic of Pakistan
+            {"PAN", "PA"}, // Panama
+            {"PER", "PE"}, // Peru
+            {"PHL", "PH"}, // Republic of the Philippines
+            {"POL", "PL"}, // Poland
+            {"PRI", "PR"}, // Puerto Rico
+            {"PRT", "PT"}, // Portugal
+            {"PRY", "PY"}, // Paraguay
+            {"QAT", "QA"}, // Qatar
+            {"ROU", "RO"}, // Romania
+            {"RUS", "RU"}, // Russia
+            {"RWA", "RW"}, // Rwanda
+            {"SAU", "SA"}, // Saudi Arabia
+            {"SCG", "CS"}, // Serbia and Montenegro (Former)
+            {"SEN", "SN"}, // Senegal
+            {"SGP", "SG"}, // Singapore
+            {"SLV", "SV"}, // El Salvador
+            {"SRB", "RS"}, // Serbia
+            {"SVK", "SK"}, // Slovakia
+            {"SVN", "SI"}, // Slovenia
+            {"SWE", "SE"}, // Sweden
+            {"SYR", "SY"}, // Syria
+            {"TAJ", "TJ"}, // Tajikistan
+            {"THA", "TH"}, // Thailand
+            {"TKM", "TM"}, // Turkmenistan
+            {"TTO", "TT"}, // Trinidad and Tobago
+            {"TUN", "TN"}, // Tunisia
+            {"TUR", "TR"}, // Turkey
+            {"TWN", "TW"}, // Taiwan
+            {"UKR", "UA"}, // Ukraine
+            {"URY", "UY"}, // Uruguay
+            {"USA", "US"}, // United States
+            {"UZB", "UZ"}, // Uzbekistan
+            {"VEN", "VE"}, // Bolivarian Republic of Venezuela
+            {"VNM", "VN"}, // Vietnam
+            {"YEM", "YE"}, // Yemen
+            {"ZAF", "ZA"}, // South Africa
+            {"ZWE", "ZW"} // Zimbabwe
+        };
+
         private PostProcessPaymentResult PostProcessKlarnaOrder(PostProcessPaymentEvaluationContext context)
         {
-            var retVal = new PostProcessPaymentResult();
+            PostProcessPaymentResult retVal = new PostProcessPaymentResult();
 
             if (ApiConnector == null)
                 ApiConnector = Connector.Create(AppSecret, CheckoutBaseUri);
 
-            var connector = ApiConnector;
-            var order = new Order(connector, context.OuterId);
+            IConnector connector = ApiConnector;
+            Order order = new Order(connector, context.OuterId);
             order.Fetch();
-            var status = order.GetValue("status") as string;
+            string status = order.GetValue("status") as string;
 
-            var gui = order.GetValue("gui") as JObject;
-            var html = gui["snippet"].Value<string>();
+            JObject gui = order.GetValue("gui") as JObject;
+            string html = gui["snippet"].Value<string>();
 
             if (status == "checkout_complete")
             {
-                var data = new Dictionary<string, object> { { "status", "created" } };
+                Dictionary<string, object> data = new Dictionary<string, object> { { "status", "created" } };
                 order.Update(data);
                 //order.Fetch();
                 status = order.GetValue("status") as string;
+
+                object value = order.GetValue("shipping_address");
+
+                JObject shippingAddress = JObject.FromObject(value);
+
+                if (context.Order.Addresses == null || context.Order.Addresses.Count < 1)
+                {
+                    if (context.Order.Addresses == null)
+                    {
+                        context.Order.Addresses = new List<Address>();
+                    }
+
+                    context.Order.Addresses.Add(new Address { AddressType = AddressType.Shipping });
+                }
+
+                Address address = context.Order.Addresses.First(add => add.AddressType == AddressType.Shipping);
+
+                address.FirstName = shippingAddress["given_name"]?.Value<string>();
+
+                address.LastName = shippingAddress["family_name"]?.Value<string>();
+
+                address.Name = shippingAddress["care_of"]?.Value<string>();
+
+                address.Line1 = shippingAddress["street_address"]?.Value<string>() ??
+                                (shippingAddress["street_name"] != null && shippingAddress["street_number"] != null ? $@"{shippingAddress["street_name"]?.Value<string>()} {shippingAddress["street_number"]?.Value<string>()}" : null) ??
+                                shippingAddress["street_name"]?.Value<string>() ?? shippingAddress["street_number"]?.Value<string>();
+
+                address.Organization = shippingAddress["organization_name"]?.Value<string>();
+
+                address.Zip = shippingAddress["postal_code"]?.Value<string>();
+
+                address.City = shippingAddress["city"]?.Value<string>();
+
+                address.CountryCode = shippingAddress["country"]?.Value<string>();
+
+                if (address.CountryCode != null)
+                {
+                    RegionInfo regionInfo = new RegionInfo(address.CountryCode);
+
+                    address.CountryCode = regionInfo.TwoLetterISORegionName;
+
+                    address.CountryName = regionInfo.EnglishName;
+                }
+
+                address.Email = shippingAddress["email"]?.Value<string>();
+
+                address.Phone = shippingAddress["phone"]?.Value<string>();
+
+                address.RegionName = "N/A";
+
+                address.RegionId = "N/A";
             }
 
             if (status == "created" && IsSale())
             {
-                var result = CaptureProcessPayment(new CaptureProcessPaymentEvaluationContext { Payment = context.Payment });
+                CaptureProcessPaymentResult result = CaptureProcessPayment(new CaptureProcessPaymentEvaluationContext { Payment = context.Payment });
+
+                context.Order.Status = "Paid";
 
                 retVal.NewPaymentStatus = context.Payment.PaymentStatus = PaymentStatus.Paid;
                 context.Payment.OuterId = result.OuterId;
                 context.Payment.IsApproved = true;
                 context.Payment.CapturedDate = DateTime.UtcNow;
                 retVal.IsSuccess = true;
+
             }
             else if (status == "created")
             {
+                context.Order.Status = "Authorized";
+
                 retVal.NewPaymentStatus = context.Payment.PaymentStatus = PaymentStatus.Authorized;
                 context.Payment.OuterId = retVal.OuterId = context.OuterId;
                 context.Payment.AuthorizedDate = DateTime.UtcNow;
@@ -412,10 +604,10 @@ namespace Klarna.Checkout.Euro.Managers
 
         private List<Dictionary<string, object>> CreateKlarnaCartItems(CustomerOrder order)
         {
-            var cartItems = new List<Dictionary<string, object>>();
-            foreach (var lineItem in order.Items)
+            List<Dictionary<string, object>> cartItems = new List<Dictionary<string, object>>();
+            foreach (LineItem lineItem in order.Items)
             {
-                var addedItem = new Dictionary<string, object>();
+                Dictionary<string, object> addedItem = new Dictionary<string, object>();
 
                 addedItem.Add("type", "physical");
 
@@ -453,9 +645,9 @@ namespace Klarna.Checkout.Euro.Managers
 
             if (order.Shipments != null && order.Shipments.Any(s => s.Sum > 0))
             {
-                foreach (var shipment in order.Shipments.Where(s => s.Sum > 0))
+                foreach (Shipment shipment in order.Shipments.Where(s => s.Sum > 0))
                 {
-                    var addedItem = new Dictionary<string, object>();
+                    Dictionary<string, object> addedItem = new Dictionary<string, object>();
 
                     addedItem.Add("type", "shipping_fee");
                     addedItem.Add("reference", "SHIPPING");
@@ -492,7 +684,7 @@ namespace Klarna.Checkout.Euro.Managers
 
         private Encoding GetEncoding()
         {
-            var retVal = Encoding.Sweden;
+            Encoding retVal = Encoding.Sweden;
 
             switch (Locale)
             {
@@ -526,7 +718,7 @@ namespace Klarna.Checkout.Euro.Managers
 
         private Currency.Code GetCurrencyCode()
         {
-            var retVal = Klarna.Api.Currency.Code.SEK;
+            Currency.Code retVal = Klarna.Api.Currency.Code.SEK;
 
             switch (PurchaseCurrency)
             {
@@ -552,7 +744,7 @@ namespace Klarna.Checkout.Euro.Managers
 
         private Language.Code GetLanguageCode()
         {
-            var retVal = Language.Code.SV;
+            Language.Code retVal = Language.Code.SV;
 
             switch (Locale)
             {
@@ -587,7 +779,7 @@ namespace Klarna.Checkout.Euro.Managers
 
         private Country.Code GetCountryCode()
         {
-            var retVal = Country.Code.SE;
+            Country.Code retVal = Country.Code.SE;
 
             switch (PurchaseCountyTwoLetterCode)
             {
@@ -621,12 +813,12 @@ namespace Klarna.Checkout.Euro.Managers
 
         private void InitializeKlarnaApi()
         {
-            var configuration = GetConfiguration();
+            Configuration configuration = GetConfiguration();
             configuration.Eid = Convert.ToInt32(AppKey);
             configuration.Secret = AppSecret;
             configuration.IsLiveMode = !IsTestMode;
 
-            var api = new Api.Api(configuration);
+            Api.Api api = new Api.Api(configuration);
 
             KlarnaApi = new KlarnaApiImpl(api);
         }

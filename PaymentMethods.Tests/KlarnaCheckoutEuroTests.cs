@@ -24,14 +24,14 @@ namespace PaymentMethods.Tests
         [Fact]
         public void SuccessProcessPayment()
         {
-            var orderJson = File.ReadAllText(@"C:\PLATFORM\vc-module-KlarnaCheckout-Euro\PaymentMethods.Tests\order.json");
-            var order = JsonConvert.DeserializeObject<CustomerOrder>(orderJson);
+            string orderJson = File.ReadAllText(@"C:\PLATFORM\vc-module-KlarnaCheckout-Euro\PaymentMethods.Tests\order.json");
+            CustomerOrder order = JsonConvert.DeserializeObject<CustomerOrder>(orderJson);
             order.Id = Guid.NewGuid().ToString();
-            var store = new Store { Url = "http://localhost/storefront" };
+            Store store = new Store { Url = "http://localhost/storefront" };
 
-            var method = GetMethod(false);
+            KlarnaCheckoutEuroPaymentMethod method = GetMethod(false);
 
-            var processPaymentEvaluationContext = method.ProcessPayment(new ProcessPaymentEvaluationContext
+            ProcessPaymentResult processPaymentEvaluationContext = method.ProcessPayment(new ProcessPaymentEvaluationContext
                 {
                     Order = order,
                     Payment = order.InPayments.First(),
@@ -46,12 +46,12 @@ namespace PaymentMethods.Tests
         [Fact]
         public void SuccessPostProcessPaymentAuthorize()
         {
-            var orderJson = File.ReadAllText(@"C:\PLATFORM\vc-module-KlarnaCheckout-Euro\PaymentMethods.Tests\order.json");
-            var order = JsonConvert.DeserializeObject<CustomerOrder>(orderJson);
+            string orderJson = File.ReadAllText(@"C:\PLATFORM\vc-module-KlarnaCheckout-Euro\PaymentMethods.Tests\order.json");
+            CustomerOrder order = JsonConvert.DeserializeObject<CustomerOrder>(orderJson);
             order.Id = Guid.NewGuid().ToString();
-            var store = new Store { Url = "http://localhost/storefront" };
+            Store store = new Store { Url = "http://localhost/storefront" };
 
-            var method = GetMethod(false);
+            KlarnaCheckoutEuroPaymentMethod method = GetMethod(false);
 
             method.ProcessPayment(new ProcessPaymentEvaluationContext
                 {
@@ -60,7 +60,7 @@ namespace PaymentMethods.Tests
                     Store = store
                 });
 
-            var postProcessPaymentResult = method.PostProcessPayment(new PostProcessPaymentEvaluationContext
+            PostProcessPaymentResult postProcessPaymentResult = method.PostProcessPayment(new PostProcessPaymentEvaluationContext
                 {
                     Order = order,
                     Payment = order.InPayments.First(),
@@ -76,12 +76,12 @@ namespace PaymentMethods.Tests
         [Fact]
         public void SuccessPostProcessPaymentSale()
         {
-            var orderJson = File.ReadAllText(@"C:\PLATFORM\vc-module-KlarnaCheckout-Euro\PaymentMethods.Tests\order.json");
-            var order = JsonConvert.DeserializeObject<CustomerOrder>(orderJson);
+            string orderJson = File.ReadAllText(@"C:\PLATFORM\vc-module-KlarnaCheckout-Euro\PaymentMethods.Tests\order.json");
+            CustomerOrder order = JsonConvert.DeserializeObject<CustomerOrder>(orderJson);
             order.Id = Guid.NewGuid().ToString();
-            var store = new Store { Url = "http://localhost/storefront" };
+            Store store = new Store { Url = "http://localhost/storefront" };
 
-            var method = GetMethod(true);
+            KlarnaCheckoutEuroPaymentMethod method = GetMethod(true);
 
             method.ProcessPayment(new ProcessPaymentEvaluationContext
             {
@@ -90,7 +90,7 @@ namespace PaymentMethods.Tests
                 Store = store
             });
 
-            var postProcessPaymentResult = method.PostProcessPayment(new PostProcessPaymentEvaluationContext
+            PostProcessPaymentResult postProcessPaymentResult = method.PostProcessPayment(new PostProcessPaymentEvaluationContext
             {
                 Order = order,
                 Payment = order.InPayments.First(),
@@ -106,12 +106,12 @@ namespace PaymentMethods.Tests
         [Fact]
         public void SuccessCapturePaymentTest()
         {
-            var orderJson = File.ReadAllText(@"C:\PLATFORM\vc-module-KlarnaCheckout-Euro\PaymentMethods.Tests\order.json");
-            var order = JsonConvert.DeserializeObject<CustomerOrder>(orderJson);
+            string orderJson = File.ReadAllText(@"C:\PLATFORM\vc-module-KlarnaCheckout-Euro\PaymentMethods.Tests\order.json");
+            CustomerOrder order = JsonConvert.DeserializeObject<CustomerOrder>(orderJson);
             order.Id = Guid.NewGuid().ToString();
-            var store = new Store { Url = "http://localhost/storefront" };
+            Store store = new Store { Url = "http://localhost/storefront" };
 
-            var method = GetMethod(false);
+            KlarnaCheckoutEuroPaymentMethod method = GetMethod(false);
 
             method.ProcessPayment(new ProcessPaymentEvaluationContext
             {
@@ -128,7 +128,7 @@ namespace PaymentMethods.Tests
                 OuterId = order.InPayments.First().OuterId
             });
 
-            var capturePaymentResult = method.CaptureProcessPayment(new CaptureProcessPaymentEvaluationContext
+            CaptureProcessPaymentResult capturePaymentResult = method.CaptureProcessPayment(new CaptureProcessPaymentEvaluationContext
             {
                 Order = order,
                 Payment = order.InPayments.First()
@@ -142,12 +142,12 @@ namespace PaymentMethods.Tests
         [Fact]
         public void SuccessVoidPaymentTest()
         {
-            var orderJson = File.ReadAllText(@"C:\PLATFORM\vc-module-KlarnaCheckout-Euro\PaymentMethods.Tests\order.json");
-            var order = JsonConvert.DeserializeObject<CustomerOrder>(orderJson);
+            string orderJson = File.ReadAllText(@"C:\PLATFORM\vc-module-KlarnaCheckout-Euro\PaymentMethods.Tests\order.json");
+            CustomerOrder order = JsonConvert.DeserializeObject<CustomerOrder>(orderJson);
             order.Id = Guid.NewGuid().ToString();
-            var store = new Store { Url = "http://localhost/storefront" };
+            Store store = new Store { Url = "http://localhost/storefront" };
 
-            var method = GetMethod(false);
+            KlarnaCheckoutEuroPaymentMethod method = GetMethod(false);
 
             method.ProcessPayment(new ProcessPaymentEvaluationContext
             {
@@ -164,7 +164,7 @@ namespace PaymentMethods.Tests
                 OuterId = order.InPayments.First().OuterId
             });
 
-            var voidPaymentResult = method.VoidProcessPayment(new VoidProcessPaymentEvaluationContext
+            VoidProcessPaymentResult voidPaymentResult = method.VoidProcessPayment(new VoidProcessPaymentEvaluationContext
             {
                 Order = order,
                 Payment = order.InPayments.First()
@@ -178,12 +178,12 @@ namespace PaymentMethods.Tests
         [Fact]
         public void SuccessRefundPaymentTest()
         {
-            var orderJson = File.ReadAllText(@"C:\PLATFORM\vc-module-KlarnaCheckout-Euro\PaymentMethods.Tests\order.json");
-            var order = JsonConvert.DeserializeObject<CustomerOrder>(orderJson);
+            string orderJson = File.ReadAllText(@"C:\PLATFORM\vc-module-KlarnaCheckout-Euro\PaymentMethods.Tests\order.json");
+            CustomerOrder order = JsonConvert.DeserializeObject<CustomerOrder>(orderJson);
             order.Id = Guid.NewGuid().ToString();
-            var store = new Store { Url = "http://localhost/storefront" };
+            Store store = new Store { Url = "http://localhost/storefront" };
 
-            var method = GetMethod(true);
+            KlarnaCheckoutEuroPaymentMethod method = GetMethod(true);
 
             method.ProcessPayment(new ProcessPaymentEvaluationContext
             {
@@ -200,7 +200,7 @@ namespace PaymentMethods.Tests
                 OuterId = order.InPayments.First().OuterId
             });
 
-            var voidPaymentResult = method.RefundProcessPayment(new RefundProcessPaymentEvaluationContext
+            RefundProcessPaymentResult voidPaymentResult = method.RefundProcessPayment(new RefundProcessPaymentEvaluationContext
             {
                 Order = order,
                 Payment = order.InPayments.First()
@@ -213,7 +213,7 @@ namespace PaymentMethods.Tests
 
         private KlarnaCheckoutEuroPaymentMethod GetMethod(bool isSale)
         {
-            var settings = new Collection<SettingEntry>();
+            Collection<SettingEntry> settings = new Collection<SettingEntry>();
 
             settings.AddRange(new[] {
                 new SettingEntry { Name = "Klarna.Checkout.Euro.AppKey", ValueType = SettingValueType.Integer, Value = "1" },
@@ -236,7 +236,7 @@ namespace PaymentMethods.Tests
                 settings.Add(new SettingEntry { Name = "Klarna.Checkout.Euro.PaymentActionType", Value = "Sale" });
             }
 
-            var klarnaCheckoutEuroPaymentMethod = new KlarnaCheckoutEuroPaymentMethod
+            KlarnaCheckoutEuroPaymentMethod klarnaCheckoutEuroPaymentMethod = new KlarnaCheckoutEuroPaymentMethod
             {
                 Settings = settings
             };
@@ -251,7 +251,7 @@ namespace PaymentMethods.Tests
 
         private IKlarnaApi GetMockKlarnaApi()
         {
-            var mockKlarnaApi = new Mock<IKlarnaApi>();
+            Mock<IKlarnaApi> mockKlarnaApi = new Mock<IKlarnaApi>();
 
             mockKlarnaApi.Setup(k => k.Activate(It.IsAny<string>())).Returns(new ActivateReservationResponse { InvoiceNumber = "InvoiceNumber" });
             mockKlarnaApi.Setup(k => k.CancelReservation(It.IsAny<string>())).Returns(true);
@@ -262,12 +262,12 @@ namespace PaymentMethods.Tests
 
         private IConnector GetMockConnector()
         {
-            var url = new Uri("http://klarna.com");
-            var secret = "My Secret";
-            var digest = new Digest();
-            var httpTransportMock = new Mock<IHttpTransport>();
+            Uri url = new Uri("http://klarna.com");
+            string secret = "My Secret";
+            Digest digest = new Digest();
+            Mock<IHttpTransport> httpTransportMock = new Mock<IHttpTransport>();
 
-            var createdresponseMock = new Mock<IHttpResponse>();
+            Mock<IHttpResponse> createdresponseMock = new Mock<IHttpResponse>();
 
             //Base
             PrepareBaseMock(httpTransportMock);
@@ -283,9 +283,9 @@ namespace PaymentMethods.Tests
 
         private void PrepareBaseMock(Mock<IHttpTransport> httpTransportMock)
         {
-            var url = new Uri("http://klarna.com");
+            Uri url = new Uri("http://klarna.com");
 
-            var responseMock = new Mock<IHttpResponse>();
+            Mock<IHttpResponse> responseMock = new Mock<IHttpResponse>();
 
             dynamic data =
                 new
@@ -306,9 +306,9 @@ namespace PaymentMethods.Tests
 
         private void PreparePostProcessMock(Mock<IHttpTransport> httpTransportMock)
         {
-            var url = new Uri("http://klarna.com");
+            Uri url = new Uri("http://klarna.com");
 
-            var responseMock = new Mock<IHttpResponse>();
+            Mock<IHttpResponse> responseMock = new Mock<IHttpResponse>();
 
             dynamic createdData =
                 new

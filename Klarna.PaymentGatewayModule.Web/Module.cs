@@ -22,7 +22,7 @@ namespace Klarna.Checkout.Euro
 
         public override void Initialize()
         {
-            var settingsManager = ServiceLocator.Current.GetInstance<ISettingsManager>();
+            ISettingsManager settingsManager = ServiceLocator.Current.GetInstance<ISettingsManager>();
 
 			Func<KlarnaCheckoutEuroPaymentMethod> klarnaCheckoutEuroPaymentMethodFactory = () => new KlarnaCheckoutEuroPaymentMethod
             {
@@ -32,7 +32,7 @@ namespace Klarna.Checkout.Euro
 				Settings = settingsManager.GetModuleSettings("Klarna.Checkout.Euro")
             };
 
-            var paymentMethodsService = _container.Resolve<IPaymentMethodsService>();
+            IPaymentMethodsService paymentMethodsService = _container.Resolve<IPaymentMethodsService>();
 			paymentMethodsService.RegisterPaymentMethod(klarnaCheckoutEuroPaymentMethodFactory);
         }
 
